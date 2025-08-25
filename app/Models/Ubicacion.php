@@ -8,6 +8,11 @@ class Ubicacion extends Model
 {
     use HasFactory;
 
-    public $timestamps = false;
-    protected $fillable = ['codigo', 'nombre', 'descripcion'];
+    protected $table = 'ubicacions';
+
+    protected $fillable = [
+        'codigo',
+        'nombre',
+        'descripcion'
+    ];
 }

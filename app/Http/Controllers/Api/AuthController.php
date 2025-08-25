@@ -8,124 +8,207 @@ use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
     /**
-     * Registro de usuario
+     * Registrar un nuevo usuario
      */
     public function register(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8',
-            'roll' => 'required|string|max:50'
-        ]);
+        try {
+            $validator = Validator::make($request->all(), [
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email|max:255',
+                'password' => 'required|string|min:8|confirmed',
+                'roll' => 'required|string|in:admin,user,moderator'
+            ]);
 
-        if ($validator->fails()) {
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Errores de validación',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'roll' => $request->roll,
+                'status' => 'alta'
+            ]);
+
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Usuario registrado exitosamente',
+                'data' => [
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'roll' => $user->roll,
+                        'status' => $user->status
+                    ],
+                    'access_token' => $token,
+                    'token_type' => 'Bearer'
+                ]
+            ], 201);
+
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Errores de validación',
-                'errors' => $validator->errors()
-            ], 422);
+                'message' => 'Error interno del servidor',
+                'error' => [
+                    'http_code' => 500
+                ]
+            ], 500);
         }
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'roll' => $request->roll,
-            'status' => 'alta'
-        ]);
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Usuario registrado con éxito',
-            'data' => [
-                'access_token' => $token,
-                'user' => $user
-            ]
-        ], 201);
     }
 
     /**
-     * Login de usuario
+     * Iniciar sesión de usuario
      */
-    public function login(Request $request)
+    public function login(Request $request) 
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => 'required|string'
-        ]);
+        try {
+            $validator = Validator::make($request->all(), [
+                'email' => 'required|email',
+                'password' => 'required|string'
+            ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Errores de validación',
-                'errors' => $validator->errors()
-            ], 422);
-        }
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Errores de validación',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
 
-        $user = User::where('email', $request->email)->first();
+            $user = User::where('email', $request->email)->first();
 
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Usuario no registrado',
-                'error' => [
-                    'http_code' => 404
-                ]
-            ], 404);
-        }
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuario no registrado',
+                    'error' => [
+                        'http_code' => 404
+                    ]
+                ], 404);
+            }
 
-        if ($user->status !== 'alta') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Usuario en estado de baja',
-                'error' => [
-                    'http_code' => 403
-                ]
-            ], 403);
-        }
+            if ($user->status !== 'alta') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuario en estado de baja',
+                    'error' => [
+                        'http_code' => 403
+                    ]
+                ], 403);
+            }
 
-        if (!Hash::check($request->password, $user->password)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'El password es incorrecto',
-                'error' => [
-                    'http_code' => 401
-                ]
-            ], 401);
-        }
+            if (!Hash::check($request->password, $user->password)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Credenciales incorrectas',
+                    'error' => [
+                        'http_code' => 401
+                    ]
+                ], 401);
+            }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'success' => true,
-            'message' => '¡Usuario logueado exitosamente!',
-            'data' => [
-                'access_token' => $token,
-                'name' => $user->name
-            ]
-        ]);
-    }
-
-    /**
-     * Logout de usuario
-     */
-    public function logout(Request $request)
-    {
-        $user = $request->user();
-        if ($user) {
+            // Revocar tokens anteriores (opcional)
             $user->tokens()->delete();
-        }
+            
+            $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Sesión finalizada',
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => '¡Usuario logueado exitosamente!',
+                'data' => [
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'roll' => $user->roll,
+                        'status' => $user->status
+                    ],
+                    'access_token' => $token,
+                    'token_type' => 'Bearer'
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error interno del servidor',
+                'error' => [
+                    'http_code' => 500
+                ]
+            ], 500);
+        }
+    }
+
+    /**
+     * Cerrar sesión de usuario
+     */
+    public function logout(Request $request) 
+    {
+        try {
+            $request->user()->currentAccessToken()->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Sesión finalizada exitosamente'
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al cerrar sesión',
+                'error' => [
+                    'http_code' => 500
+                ]
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtener información del usuario autenticado
+     */
+    public function me(Request $request)
+    {
+        try {
+            $user = $request->user();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Información del usuario',
+                'data' => [
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'roll' => $user->roll,
+                        'status' => $user->status,
+                        'created_at' => $user->created_at,
+                        'updated_at' => $user->updated_at
+                    ]
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener información del usuario',
+                'error' => [
+                    'http_code' => 500
+                ]
+            ], 500);
+        }
     }
 }

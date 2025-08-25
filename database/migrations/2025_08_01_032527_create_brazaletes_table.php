@@ -11,15 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('brazaletes', function (Blueprint $table) {
-            $table->id();
-            $table->string('qr_code', 100)->unique();
-            $table->dateTime('fecha_in');
-            $table->dateTime('fecha_out');
-            $table->foreignId('estatus_id')->constrained('estatuses');
-            $table->integer('contador_reingresos')->default(0);
-            $table->timestamps();
-        });
+    Schema::create('brazaletes', function (Blueprint $table) {
+        $table->id();
+        $table->string('qr_code')->unique();
+        $table->string('evento_codigo');
+        $table->string('ubicacion_codigo');
+        $table->datetime('fecha_in');
+        $table->datetime('fecha_out')->nullable();
+        $table->foreignId('estatus_id')->constrained('estatuses');
+        $table->integer('contador_reingresos')->default(0);
+        $table->timestamps();
+        
+    // Claves foráneas
+    $table->foreign('evento_codigo')->references('codigo')->on('eventos');
+    $table->foreign('ubicacion_codigo')->references('codigo')->on('ubicacions');
+});
     }
 
     /**

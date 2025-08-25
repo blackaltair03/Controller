@@ -9,10 +9,17 @@ class Estatus extends Model
 {
     use HasFactory;
 
-    public $timestamps = false; # Se deshabilita la gestion automatica de timestamps
+    protected $table = 'estatuses';
 
-    protected $table = 'estatus'; # especiifcacion de la tabla estatus
+    protected $fillable = [
+        'codigo',
+        'nombre',
+        'descripcion',
+    ];
 
-    protected $fillable = ['codigo', 'nombre', 'descripcion'];
+    public function brazaletes()
+    {
+        return $this->hasMany(Brazalete::class);
+    }
 
 }

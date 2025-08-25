@@ -2,14 +2,13 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\BrazaleteController;
-use App\Http\Controllers\Api\EventoController;
-use App\Http\Controllers\Api\EstatusController;
-use App\Http\Controllers\Api\ServicioController;
-use App\Http\Controllers\Api\UbicacionController;
-use App\Http\Controllers\Api\ZonaController;
-
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BrazaleteController;
+use App\Http\Controllers\EventoController;
+use App\Http\Controllers\EstatusController;
+use App\Http\Controllers\ServicioController;
+use App\Http\Controllers\UbicacionController;
+use App\Http\Controllers\ZonaController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -19,29 +18,24 @@ use App\Http\Controllers\Api\ZonaController;
 |
 */
 
-// --- Rutas Públicas ---
-// No requieren token de autenticación.
-Route::post('/register', [AuthController::class, 'register']);
+// ----------------------------
+// Rutas Públicas (sin autenticación)
+// ----------------------------
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('brazaletes/validar', [BrazaleteController::class, 'validar']);
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/brazaletes/validar', [BrazaleteController::class, 'validar']);
 
-
-// --- Rutas Protegidas ---
-// Todas las rutas dentro de este grupo requieren un token válido de Sanctum.
+// ----------------------------
+// Rutas Protegidas (requieren autenticación Sanctum)
+// ----------------------------
 Route::middleware('auth:sanctum')->group(function () {
+    // Autenticación
+    Route::post('/logout', [AuthController::class, 'logout']);
     
-    // Ruta para cerrar sesión (requiere estar autenticado).
-    #Route::post('/logout', [AuthController::class, 'logout']);
     
-    // Rutas de Brazaletes (requieren autenticación para crear y listar).
-    Route::prefix('brazaletes')->group(function () {
-        Route::get('/', [BrazaleteController::class, 'index']);
-        Route::post('/crear', [BrazaleteController::class, 'store']);
-    });
-
-    // Rutas de Recursos para los otros controladores.
-    #`apiResource` crea automáticamente las rutas para:
-    // index, store, show, update, destroy.
+    // Estandarizacion de las rutas de cada uno de los recursos 
+    //Creacion en automatico de las rutas index, store, show, update, destroy
+    Route::apiResource('brazaletes', BrazaleteController::class)->except(['update']); // Excluimos update si no se usa
     Route::apiResource('eventos', EventoController::class);
     Route::apiResource('estatus', EstatusController::class);
     Route::apiResource('servicios', ServicioController::class);

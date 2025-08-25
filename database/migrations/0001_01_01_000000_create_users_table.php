@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('password');
             $table->rememberToken();
             $table->string('roll')->default('user');
-            $table->string('status')->default();
+            $table->string('status')->default('alta');
             $table->timestamps();
         });
 

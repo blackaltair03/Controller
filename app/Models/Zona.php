@@ -8,21 +8,26 @@ class Zona extends Model
 {
     use HasFactory;
 
-    public $timestamps = false;
-    protected $fillable = ['codigo', 'nombre', 'tipo', 'descripcion'];
+    protected $fillable = [
+        'codigo',
+        'nombre',
+        'tipo',
+        'descripcion',
+    ];
 
-    public function zonaGeneral()
+    public function zonaAcampar(): HasOne
+        {
+            return $this->hasOne(ZonaAcampar::class);
+        }
+    public function zonaHotel(): HasOne
     {
-        return $this->hasOne(ZonaGeneral::class); #relacion con datos iguales en zona
+        return $this->zonaHotel(ZonaHotel::class);
+    }
+    
+    public function zonaGeneral():HasOne 
+    {
+        return $this->zonaGeneral(ZonaGeneral::class);
     }
 
-    public function zonaHotel()
-    {
-        return $this->hasOne(ZonaHotel::class);
-    }
-
-    public function zonaAcampar()
-    {
-        return $this->hasOne(ZonaAcampar::class);
-    }
+    
 }
