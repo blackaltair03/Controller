@@ -2,64 +2,59 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Controller; //cOPIAR ESTA LINEA DE CODIGO EN LOS DEMAAS CONTROLLERS 
 use App\Models\Ubicacion;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class UbicacionController extends Controller
 {
+    // Mostrar todas las ubicaciones
     public function index()
     {
-        return response()->json([
-            'success' => true,
-            'data' => Ubicacion::all(),
-            'message' => 'Ubicaciones recuperadas exitosamente.'
-        ]);
+        return response()->json(Ubicacion::all(), 200);
     }
 
+    // Crear una nueva ubicación
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'codigo' => 'required|string|unique:ubicacions',
-            'nombre' => 'required|string|max:100',
+        $validated = $request->validate([
+            'codigo' => 'required|string|max:20|unique:ubicacions,codigo',
+            'nombre' => 'required|string|max:50',
             'descripcion' => 'nullable|string|max:255',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['success' => false, 'message' => 'Error de validación', 'errors' => $validator->errors()], 422);
-        }
+        $ubicacion = Ubicacion::create($validated);
 
-        $ubicacion = Ubicacion::create($request->all());
-
-        return response()->json(['success' => true, 'data' => $ubicacion, 'message' => 'Ubicación creada exitosamente.'], 201);
+        return response()->json($ubicacion, 201);
     }
 
+    // Mostrar una ubicación específica
     public function show(Ubicacion $ubicacion)
     {
-        return response()->json(['success' => true, 'data' => $ubicacion, 'message' => 'Ubicación encontrada.']);
+        return response()->json($ubicacion, 200);
     }
 
+    // Actualizar una ubicación
     public function update(Request $request, Ubicacion $ubicacion)
     {
-        $validator = Validator::make($request->all(), [
-            'codigo' => 'sometimes|required|string|unique:ubicacions,codigo,' . $ubicacion->id,
-            'nombre' => 'sometimes|required|string|max:100',
+        $validated = $request->validate([
+            'codigo' => 'sometimes|string|max:20|unique:ubicacions,codigo,' . $ubicacion->id,
+            'nombre' => 'sometimes|string|max:50',
             'descripcion' => 'nullable|string|max:255',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['success' => false, 'message' => 'Error de validación', 'errors' => $validator->errors()], 422);
-        }
+        $ubicacion->update($validated);
 
-        $ubicacion->update($request->all());
-
-        return response()->json(['success' => true, 'data' => $ubicacion, 'message' => 'Ubicación actualizada exitosamente.']);
+        return response()->json($ubicacion, 200);
     }
 
+    // Eliminar una ubicación
     public function destroy(Ubicacion $ubicacion)
     {
         $ubicacion->delete();
-        return response()->json(['success' => true, 'message' => 'Ubicación eliminada exitosamente.'], 200);
+
+        return response()->json([
+            'message' => 'Ubicación eliminada correctamente'
+        ], 200);
     }
 }

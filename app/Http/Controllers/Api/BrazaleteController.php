@@ -3,35 +3,62 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Brazalete;
-use App\Models\Evento;
-use App\Models\Ubicacion;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Carbon\Carbon;
+use App\Models\Brazalete;
 
-class BrzaleteController extends Controller
+class BrazaleteController extends Controller
 {
     public function index()
     {
-        return BrazaleteResource::collection(Brazalete::all());
+        return response()->json(Brazalete::all());
     }
 
-    public function store()
+    public function store(Request $request)
     {
-        $brazalete = Brazalete::create($request->validated());
-        return new BrazaleteResource($brazalete);
+        $validate = $request->validate([
+            'qr_code' => 'required|string|unique:brazalete',
+            'fecha_in' => 'required|date',
+            'fecha_out' => 'required|date|after:fecha_in',
+            'estatus_id' => 'required|exists:estatus,id',
+            'contador_reingresos' => 'integer|min:0|default:0',
+        ]);
+
+        $brazalete = Brazalete::create($validated);
+        return response()->json($brazalete, 201);
     }
 
-    public function update(Request $request, Brazalete $brazalete)
+    public function show(Brazalete $brazalete)
     {
-        $brazalete-update($request->all());
-        return new BrazaleteResource($brazalete);
+        return response()->json($brazalete->load('estatus'));
     }
 
     public function destroy(Brazalete $brazalete)
     {
-        $brazalete->delete();
-        return response()->onContent();
+        $brazalete->destroy();
+        return response()->json([
+            'message' => 'Brazalete eliminado'
+        ]);
+
+    }
+
+    public function validar(Request $request) 
+    {
+        $request->validate(['qr_code' => 'required|string']);
+
+        $brazalete = Brazalete::where('qr_code', $request->qr_code)
+        ->with('estatus')
+        ->first();
+
+        if (!$brazalete) {
+            return response()->json([
+                'valido' => false,
+                'mensaje' => 'Brazalete no Encontrado'
+            ], 404);
+        }
+
+        return response()->json([
+            'valido' => true,
+            'brazalete' => $brazalete
+        ]);
     }
 }

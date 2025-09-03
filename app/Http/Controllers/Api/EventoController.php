@@ -4,57 +4,48 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Evento;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class EventoController extends Controller
 {
     public function index()
     {
-        return response()->json(['success' => true, 'data' => Evento::all(), 'message' => 'Eventos recuperados.']);
+        return response()->json(Evento::all);
     }
 
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'codigo' => 'required|string|unique:eventos',
-            'duracion' => 'required|integer',
-            'descripcion' => 'nullable|string',
+        $validated = $request->validate([
+            'codigo' => 'required|string|max:20|unique:eventos',
+            'duracion' => 'required|integer|min:1',
+            'descripcion' => 'required|string|max:255',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['success' => false, 'message' => 'Error de validación', 'errors' => $validator->errors()], 422);
-        }
-
-        $evento = Evento::create($request->all());
-
-        return response()->json(['success' => true, 'data' => $evento, 'message' => 'Evento creado exitosamente.'], 201);
+        $evento = Evento::create($validated);
+        return response()->json($evento, 201);
     }
 
-    public function show(Evento $evento)
+    public function show(Evento $evento) 
     {
-        return response()->json(['success' => true, 'data' => $evento, 'message' => 'Evento encontrado.']);
+        return response()->json($evento);
     }
 
     public function update(Request $request, Evento $evento)
     {
-        $validator = Validator::make($request->all(), [
-            'codigo' => 'sometimes|required|string|unique:eventos,codigo,' . $evento->id,
-            'duracion' => 'sometimes|required|integer',
-            'descripcion' => 'nullable|string',
+        $validated = $request->validated([
+            'codigo' => 'sometimes|string|max:20|unique:eventos.codigo,' . $evento->id,
+            'duracion' => 'sometimes|integer|min:1',
+            'descripcion' => 'nullable|string|max:255',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['success' => false, 'message' => 'Error de validación', 'errors' => $validator->errors()], 422);
-        }
-
-        $evento->update($request->all());
-
-        return response()->json(['success' => true, 'data' => $evento, 'message' => 'Evento actualizado exitosamente.']);
+        $evento->update($validated);
+        return response()->json($evento);
     }
 
     public function destroy(Evento $evento)
     {
         $evento->delete();
-        return response()->json(['success' => true, 'message' => 'Evento eliminado exitosamente.'], 200);
+        return response()->json([
+            'message' => 'Evento eliminad0'
+        ]);
     }
 }

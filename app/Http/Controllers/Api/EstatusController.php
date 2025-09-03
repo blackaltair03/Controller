@@ -5,76 +5,52 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Estatus;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+
 
 class EstatusController extends Controller
 {
-    /**
-     * Muestra una lista de los recursos.
-     */
-    public function index()
+    public function indez()
     {
-        return response()->json([
-            'success' => true, 
-            'data' => Estatus::all(), 
-            'message' => 'Estatus recuperados exitosamente.'
-        ]);
+        return response()->json(Estatus::all());
     }
 
-    /**
-     * Almacena un recurso recién creado.
-     */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'codigo' => 'required|string|unique:estatus',
+        $validated = $request->validate([
+            'codigo' => 'required|string|max:20|unique:estatus',
             'nombre' => 'required|string|max:50',
             'descripcion' => 'nullable|string|max:255',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['success' => false, 'message' => 'Error de validación', 'errors' => $validator->errors()], 422);
-        }
-
-        $estatus = Estatus::create($request->all());
-
-        return response()->json(['success' => true, 'data' => $estatus, 'message' => 'Estatus creado exitosamente.'], 201);
+        $estatus = Estatus::create($validated);
+        return response()->json($estatus, 201);
     }
 
-    /**
-     * Muestra el recurso especificado.
-     */
-    public function show(Estatus $estatu)
+    public function show(Estatus $estatus)
     {
-        return response()->json(['success' => true, 'data' => $estatu, 'message' => 'Estatus encontrado.']);
+        return response()->json($estatus);
     }
 
-    /**
-     * Actualiza el recurso especificado en el almacenamiento.
-     */
-    public function update(Request $request, Estatus $estatu)
+    public function update (Request $request, Estatus $estatus)
     {
-        $validator = Validator::make($request->all(), [
-            'codigo' => 'sometimes|required|string|unique:estatus,codigo,' . $estatu->id,
-            'nombre' => 'sometimes|required|string|max:50',
+        $validated = $request->validate([
+            'codigo' => 'required|string|max:20|unique|estatuses,codigo,' . $estatus->id,
+            'nombre' => 'required|string|max:50',
             'descripcion' => 'nullable|string|max:255',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['success' => false, 'message' => 'Error de validación', 'errors' => $validator->errors()], 422);
-        }
-
-        $estatu->update($request->all());
-
-        return response()->json(['success' => true, 'data' => $estatu, 'message' => 'Estatus actualizado exitosamente.']);
+        $estatus->update($validated);
+        return response()->json($estatus);
     }
 
-    /**
-     * Elimina el recurso especificado del almacenamiento.
-     */
-    public function destroy(Estatus $estatu)
+    public function destroy(Estatus $estatus)
     {
-        $estatu->delete();
-        return response()->json(['success' => true, 'message' => 'Estatus eliminado exitosamente.'], 200);
+        $estatus->delete();
+        return response()->json([
+            'message' => 'Estatus eliminado'
+        ]);
     }
+
+
 }
+

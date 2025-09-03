@@ -8,6 +8,8 @@ class Zona extends Model
 {
     use HasFactory;
 
+    protected $table = 'zonas';
+
     protected $fillable = [
         'codigo',
         'nombre',
@@ -15,19 +17,9 @@ class Zona extends Model
         'descripcion',
     ];
 
-    public function zonaAcampar(): HasOne
-        {
-            return $this->hasOne(ZonaAcampar::class);
-        }
-    public function zonaHotel(): HasOne
-    {
-        return $this->zonaHotel(ZonaHotel::class);
-    }
-    
-    public function zonaGeneral():HasOne 
-    {
-        return $this->zonaGeneral(ZonaGeneral::class);
-    }
+    protected $casts = [
+        'tipo' => 'string',
+    ];
 
-    
 }
+
