@@ -23,7 +23,7 @@ class UpdateBrazaleteRequest extends FormRequest
      */
     public function rules(): array
     {
-        $brazaleteId = $this->route('brazalete')->id;
+        $brazaleteId = optional($this->route('brazalete'))->id;
 
         return [
             'qr_code' => [
@@ -31,11 +31,11 @@ class UpdateBrazaleteRequest extends FormRequest
                 'required',
                 'string',
                 'max:100',
-                Rule::unique('brazaletes')->ignore($brazaleteId),
+                Rule::unique('brazaletes', 'qr_code')->ignore($brazaleteId),
             ],
             'fecha_in' => 'sometimes|required|date',
             'fecha_out' => 'sometimes|required|date|after_or_equal:fecha_in',
-            'estatus_id' => 'sometimes|required|integer|exists:estatuses,id',
+            'estatus_id' => 'sometimes|required|integer|exists:estatus,id',
             'contador_reingresos' => 'sometimes|integer|min:0',
         ];
     }

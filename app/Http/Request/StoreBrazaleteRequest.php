@@ -27,7 +27,7 @@ class StoreBrazaleteRequest extends FormRequest
             'qr_code' => 'required|string|max:100|unique:brazaletes,qr_code',
             'fecha_in' => 'required|date',
             'fecha_out' => 'required|date|after_or_equal:fecha_in',
-            'estatus_id' => 'required|integer|exists:estatuses,id',
+            'estatus_id' => 'required|integer|exists:estatus,id',
             'contador_reingresos' => 'sometimes|integer|min:0',
         ];
     }

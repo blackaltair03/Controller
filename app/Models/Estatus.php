@@ -21,5 +21,5 @@ class Estatus extends Model
     {
         return $this->hasMany(Brazalete::class);
     }
-
 }
+

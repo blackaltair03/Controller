@@ -11,14 +11,16 @@ class CheckRole
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Closure  $next
+     * @param  mixed ...$roles
+     * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next, ...$roles): Response
     {
         if (! $request->user() || ! $request->user()->hasAnyRole($roles)) {
-            abort(403, 'Accion no autorizada');
+            abort(403, 'Acción no autorizada');
         }
         return $next($request);
     }
-
 }

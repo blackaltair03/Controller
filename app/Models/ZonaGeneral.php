@@ -10,7 +10,8 @@ class ZonaGeneral extends Model
 {
     use HasFactory;
 
-    protected $table = 'zona_general';
+    protected $table = 'zona_generales';
+
     protected $fillable = [
         'zona_id',
         'area',

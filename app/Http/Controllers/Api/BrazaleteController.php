@@ -15,12 +15,12 @@ class BrazaleteController extends Controller
 
     public function store(Request $request)
     {
-        $validate = $request->validate([
-            'qr_code' => 'required|string|unique:brazalete',
+        $validated = $request->validate([
+            'qr_code' => 'required|string|unique:brazaletes,qr_code',
             'fecha_in' => 'required|date',
             'fecha_out' => 'required|date|after:fecha_in',
             'estatus_id' => 'required|exists:estatus,id',
-            'contador_reingresos' => 'integer|min:0|default:0',
+            'contador_reingresos' => 'integer|min:0',
         ]);
 
         $brazalete = Brazalete::create($validated);
@@ -34,11 +34,10 @@ class BrazaleteController extends Controller
 
     public function destroy(Brazalete $brazalete)
     {
-        $brazalete->destroy();
+        $brazalete->delete();
         return response()->json([
-            'message' => 'Brazalete eliminado'
+            'message' => 'Brazalete eliminado correctamente'
         ]);
-
     }
 
     public function validar(Request $request) 
@@ -46,13 +45,13 @@ class BrazaleteController extends Controller
         $request->validate(['qr_code' => 'required|string']);
 
         $brazalete = Brazalete::where('qr_code', $request->qr_code)
-        ->with('estatus')
-        ->first();
+            ->with('estatus')
+            ->first();
 
         if (!$brazalete) {
             return response()->json([
                 'valido' => false,
-                'mensaje' => 'Brazalete no Encontrado'
+                'mensaje' => 'Brazalete no encontrado'
             ], 404);
         }
 

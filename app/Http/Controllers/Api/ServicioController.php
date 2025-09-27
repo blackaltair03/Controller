@@ -17,7 +17,7 @@ class ServicioController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'codigo' => 'required|string|max:20|unique:servicios',
+            'codigo' => 'required|string|max:20|unique:servicios,codigo',
             'nombre' => 'required|string|max:50',
             'descripcion' => 'nullable|string|max:255',
         ]);

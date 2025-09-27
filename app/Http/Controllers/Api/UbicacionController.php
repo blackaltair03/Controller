@@ -18,7 +18,7 @@ class UbicacionController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'codigo' => 'required|string|max:20|unique:ubicacions,codigo',
+            'codigo' => 'required|string|max:20|unique:ubicaciones,codigo',
             'nombre' => 'required|string|max:50',
             'descripcion' => 'nullable|string|max:255',
         ]);
@@ -38,7 +38,7 @@ class UbicacionController extends Controller
     public function update(Request $request, Ubicacion $ubicacion)
     {
         $validated = $request->validate([
-            'codigo' => 'sometimes|string|max:20|unique:ubicacions,codigo,' . $ubicacion->id,
+            'codigo' => 'sometimes|string|max:20|unique:ubicaciones,codigo,' . $ubicacion->id,
             'nombre' => 'sometimes|string|max:50',
             'descripcion' => 'nullable|string|max:255',
         ]);

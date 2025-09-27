@@ -6,30 +6,29 @@ use App\Http\Controllers\Controller;
 use App\Models\Zona;
 use Illuminate\Http\Request;
 
-
 class ZonaController extends Controller
 {
     public function index()
     {
-        return response()->json(Zona::with('ubicacion')-get());
+        return response()->json(Zona::with('ubicacion')->get());
     }
 
-    public function store(Rquest $request)
+    public function store(Request $request)
     {
         $validated = $request->validate([
-            'nombre' => 'required|string|max::255',
+            'nombre' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
             'ubicacion_id' => 'required|exists:ubicaciones,id',
             'capacidad' => 'required|integer|min:1',
         ]);
 
-        $zona = Zona::cerate($validated);
+        $zona = Zona::create($validated);
         return response()->json($zona, 201);
     }
 
     public function show(Zona $zona)
     {
-        return response()->json($zona-load('ubicacion'));
+        return response()->json($zona->load('ubicacion'));
     }
 
     public function update(Request $request, Zona $zona)
@@ -45,11 +44,11 @@ class ZonaController extends Controller
         return response()->json($zona);
     }
 
-    public function destroy (Zona $zona)
+    public function destroy(Zona $zona)
     {
         $zona->delete();
         return response()->json([
-            'message' => 'Zona Eliminada'
+            'message' => 'Zona eliminada correctamente'
         ]);
     }
 }

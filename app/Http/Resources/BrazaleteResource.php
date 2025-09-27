@@ -18,16 +18,16 @@ class BrazaleteResource extends JsonResource
         return [
             'id' => $this->id,
             'qr_code' => $this->qr_code,
-            'fecha_ingreso' => $this->fecha_in->format('Y-m-d H:i:s'),
-            'fecha_salida' => $this->fecha_out->format('Y-m-d H:i:s'),
-            'reingresos' => $this->contador_reingresos,
+            'fecha_in' => optional($this->fecha_in)->format('Y-m-d H:i:s'),
+            'fecha_out' => optional($this->fecha_out)->format('Y-m-d H:i:s'),
+            'contador_reingresos' => $this->contador_reingresos,
             'estatus' => $this->whenLoaded('estatus', function () {
                 return [
                     'codigo' => $this->estatus->codigo,
                     'nombre' => $this->estatus->nombre,
                 ];
             }),
-            'creado_en' => $this->created_at->format('Y-m-d H:i:s'),
+            'created_at' => optional($this->created_at)->format('Y-m-d H:i:s'),
         ];
     }
 }

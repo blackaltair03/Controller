@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 class Zona extends Model
 {
     use HasFactory;
@@ -15,11 +16,17 @@ class Zona extends Model
         'nombre',
         'tipo',
         'descripcion',
+        'ubicacion_id',
+        'capacidad',
     ];
 
     protected $casts = [
         'tipo' => 'string',
     ];
 
+    public function ubicacion()
+    {
+        return $this->belongsTo(Ubicacion::class);
+    }
 }
 

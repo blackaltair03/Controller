@@ -80,7 +80,6 @@ class VerificarBrazaleteController extends Controller
         // Esto puede ser útil si la cadena tiene una validez propia (ej. solo válida por 5 min)
         try {
             $fechaCadena = Carbon::createFromFormat('dmY H:i', $fecha_str . ' ' . $hora_str);
-            // Ejemplo: if (Carbon::now()->diffInMinutes($fechaCadena) > 5) { ... }
         } catch (\Exception $e) {
             return response()->json(['message' => 'El formato de fecha u hora en la cadena es inválido.'], 400);
         }

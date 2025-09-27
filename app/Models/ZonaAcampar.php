@@ -4,11 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuninate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
 class ZonaAcampar extends Model
 {
     use HasFactory;
-    protected $table = 'zona_acampars';
+
+    protected $table = 'zona_acampares';
+
     protected $fillable = [
         'zona_id',
         'lote',

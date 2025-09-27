@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\EstatusController;
 use App\Http\Controllers\Api\ServicioController;
 use App\Http\Controllers\Api\UbicacionController;
 use App\Http\Controllers\Api\ZonaController;
+use App\Http\Controllers\Api\VerificarBrazaleteController;
 
 // ----------------------------
 // Rutas Públicas
@@ -16,14 +17,15 @@ use App\Http\Controllers\Api\ZonaController;
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/brazaletes/validar', [BrazaleteController::class, 'validar']);
+Route::post('/brazaletes/verificar', VerificarBrazaleteController::class); // Para verificación por cadena
 
 // ----------------------------
 // Rutas Protegidas
 // ----------------------------
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
-    
-    Route::apiResource('brazaletes', BrazaleteController::class)->except(['update']);
+
+    Route::apiResource('brazaletes', BrazaleteController::class);
     Route::apiResource('eventos', EventoController::class);
     Route::apiResource('estatus', EstatusController::class);
     Route::apiResource('servicios', ServicioController::class);

@@ -6,10 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Estatus;
 use Illuminate\Http\Request;
 
-
 class EstatusController extends Controller
 {
-    public function indez()
+    public function index()
     {
         return response()->json(Estatus::all());
     }
@@ -17,7 +16,7 @@ class EstatusController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'codigo' => 'required|string|max:20|unique:estatus',
+            'codigo' => 'required|string|max:20|unique:estatus,codigo',
             'nombre' => 'required|string|max:50',
             'descripcion' => 'nullable|string|max:255',
         ]);
@@ -31,11 +30,11 @@ class EstatusController extends Controller
         return response()->json($estatus);
     }
 
-    public function update (Request $request, Estatus $estatus)
+    public function update(Request $request, Estatus $estatus)
     {
         $validated = $request->validate([
-            'codigo' => 'required|string|max:20|unique|estatuses,codigo,' . $estatus->id,
-            'nombre' => 'required|string|max:50',
+            'codigo' => 'sometimes|string|max:20|unique:estatus,codigo,' . $estatus->id,
+            'nombre' => 'sometimes|string|max:50',
             'descripcion' => 'nullable|string|max:255',
         ]);
 
@@ -47,10 +46,8 @@ class EstatusController extends Controller
     {
         $estatus->delete();
         return response()->json([
-            'message' => 'Estatus eliminado'
+            'message' => 'Estatus eliminado correctamente'
         ]);
     }
-
-
 }
 

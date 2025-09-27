@@ -9,13 +9,13 @@ class EventoController extends Controller
 {
     public function index()
     {
-        return response()->json(Evento::all);
+        return response()->json(Evento::all());
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'codigo' => 'required|string|max:20|unique:eventos',
+            'codigo' => 'required|string|max:20|unique:eventos,codigo',
             'duracion' => 'required|integer|min:1',
             'descripcion' => 'required|string|max:255',
         ]);
@@ -31,8 +31,8 @@ class EventoController extends Controller
 
     public function update(Request $request, Evento $evento)
     {
-        $validated = $request->validated([
-            'codigo' => 'sometimes|string|max:20|unique:eventos.codigo,' . $evento->id,
+        $validated = $request->validate([
+            'codigo' => 'sometimes|string|max:20|unique:eventos,codigo,' . $evento->id,
             'duracion' => 'sometimes|integer|min:1',
             'descripcion' => 'nullable|string|max:255',
         ]);
@@ -45,7 +45,7 @@ class EventoController extends Controller
     {
         $evento->delete();
         return response()->json([
-            'message' => 'Evento eliminad0'
+            'message' => 'Evento eliminado correctamente'
         ]);
     }
 }
