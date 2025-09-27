@@ -5,9 +5,23 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Estatus;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use Exception;
 
 class EstatusController extends Controller
 {
+    /**
+     * Transformar estatus para la respuesta.
+     */
+    private function transform(Estatus $estatus)
+    {
+        return [
+            'codigo' => $estatus->codigo,
+            'nombre' => $estatus->nombre,
+            'descripcion' => $estatus->descripcion,
+        ];
+    }
+
     /**
      * Listar estatus.
      */
@@ -15,12 +29,15 @@ class EstatusController extends Controller
     {
         try {
             $estatus = Estatus::paginate(10);
+            $data = $estatus->getCollection()->map(fn($e) => $this->transform($e));
+            $estatus->setCollection($data);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Lista de estatus obtenida correctamente',
                 'data' => $estatus
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener estatus',
@@ -42,18 +59,19 @@ class EstatusController extends Controller
             ]);
 
             $estatus = Estatus::create($validated);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Estatus creado correctamente',
-                'data' => $estatus
+                'data' => $this->transform($estatus)
             ], 201);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error de validación',
-                'errors' => $e->errors()
+                'error' => $e->errors()
             ], 422);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error al crear estatus',
@@ -71,9 +89,9 @@ class EstatusController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Estatus obtenido correctamente',
-                'data' => $estatus
+                'data' => $this->transform($estatus)
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener estatus',
@@ -95,18 +113,19 @@ class EstatusController extends Controller
             ]);
 
             $estatus->update($validated);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Estatus actualizado correctamente',
-                'data' => $estatus
+                'data' => $this->transform($estatus)
             ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error de validación',
-                'errors' => $e->errors()
+                'error' => $e->errors()
             ], 422);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error al actualizar estatus',
@@ -122,12 +141,13 @@ class EstatusController extends Controller
     {
         try {
             $estatus->delete();
+
             return response()->json([
                 'success' => true,
                 'message' => 'Estatus eliminado correctamente',
                 'data' => null
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error al eliminar estatus',
@@ -136,4 +156,3 @@ class EstatusController extends Controller
         }
     }
 }
-

@@ -5,9 +5,23 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Ubicacion;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use Exception;
 
 class UbicacionController extends Controller
 {
+    /**
+     * Transformar ubicación para la respuesta.
+     */
+    private function transform(Ubicacion $ubicacion)
+    {
+        return [
+            'codigo' => $ubicacion->codigo,
+            'nombre' => $ubicacion->nombre,
+            'descripcion' => $ubicacion->descripcion,
+        ];
+    }
+
     /**
      * Listar ubicaciones.
      */
@@ -15,12 +29,15 @@ class UbicacionController extends Controller
     {
         try {
             $ubicaciones = Ubicacion::paginate(10);
+            $data = $ubicaciones->getCollection()->map(fn($u) => $this->transform($u));
+            $ubicaciones->setCollection($data);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Lista de ubicaciones obtenida correctamente',
                 'data' => $ubicaciones
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener ubicaciones',
@@ -46,15 +63,15 @@ class UbicacionController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Ubicación creada correctamente',
-                'data' => $ubicacion
+                'data' => $this->transform($ubicacion)
             ], 201);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error de validación',
-                'errors' => $e->errors()
+                'error' => $e->errors()
             ], 422);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error al crear ubicación',
@@ -72,9 +89,9 @@ class UbicacionController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Ubicación obtenida correctamente',
-                'data' => $ubicacion
+                'data' => $this->transform($ubicacion)
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener ubicación',
@@ -100,15 +117,15 @@ class UbicacionController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Ubicación actualizada correctamente',
-                'data' => $ubicacion
+                'data' => $this->transform($ubicacion)
             ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error de validación',
-                'errors' => $e->errors()
+                'error' => $e->errors()
             ], 422);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error al actualizar ubicación',
@@ -130,7 +147,7 @@ class UbicacionController extends Controller
                 'message' => 'Ubicación eliminada correctamente',
                 'data' => null
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error al eliminar ubicación',

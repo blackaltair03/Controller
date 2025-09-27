@@ -5,9 +5,25 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Brazalete;
+use Illuminate\Validation\ValidationException;
+use Exception;
 
 class BrazaleteController extends Controller
 {
+    /**
+     * Transformar brazalete para la respuesta.
+     */
+    private function transform(Brazalete $brazalete)
+    {
+        return [
+            'qr_code' => $brazalete->qr_code,
+            'fecha_in' => $brazalete->fecha_in,
+            'fecha_out' => $brazalete->fecha_out,
+            'estatus' => $brazalete->estatus->nombre ?? null,
+            'contador_reingresos' => $brazalete->contador_reingresos,
+        ];
+    }
+
     /**
      * Listar brazaletes.
      */
@@ -15,12 +31,15 @@ class BrazaleteController extends Controller
     {
         try {
             $brazaletes = Brazalete::with('estatus')->paginate(10);
+            $data = $brazaletes->getCollection()->map(fn($b) => $this->transform($b));
+            $brazaletes->setCollection($data);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Lista de brazaletes obtenida correctamente',
                 'data' => $brazaletes
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener brazaletes',
@@ -44,18 +63,19 @@ class BrazaleteController extends Controller
             ]);
 
             $brazalete = Brazalete::create($validated);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Brazalete creado correctamente',
-                'data' => $brazalete
+                'data' => $this->transform($brazalete)
             ], 201);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error de validación',
-                'errors' => $e->errors()
+                'error' => $e->errors()
             ], 422);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error al crear brazalete',
@@ -73,9 +93,9 @@ class BrazaleteController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Brazalete obtenido correctamente',
-                'data' => $brazalete->load('estatus')
+                'data' => $this->transform($brazalete->load('estatus'))
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener brazalete',
@@ -91,12 +111,13 @@ class BrazaleteController extends Controller
     {
         try {
             $brazalete->delete();
+
             return response()->json([
                 'success' => true,
                 'message' => 'Brazalete eliminado correctamente',
                 'data' => null
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error al eliminar brazalete',
@@ -110,24 +131,38 @@ class BrazaleteController extends Controller
      */
     public function validar(Request $request)
     {
-        $request->validate(['qr_code' => 'required|string']);
+        try {
+            $request->validate(['qr_code' => 'required|string']);
 
-        $brazalete = Brazalete::where('qr_code', $request->qr_code)
-            ->with('estatus')
-            ->first();
+            $brazalete = Brazalete::where('qr_code', $request->qr_code)
+                ->with('estatus')
+                ->first();
 
-        if (!$brazalete) {
+            if (!$brazalete) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Brazalete no encontrado',
+                    'data' => null
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Brazalete válido',
+                'data' => $this->transform($brazalete)
+            ]);
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Brazalete no encontrado',
-                'data' => null
-            ], 404);
+                'message' => 'Error de validación',
+                'error' => $e->errors()
+            ], 422);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al validar brazalete',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Brazalete válido',
-            'data' => $brazalete
-        ]);
     }
 }

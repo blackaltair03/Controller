@@ -5,9 +5,23 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Evento;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use Exception;
 
 class EventoController extends Controller
 {
+    /**
+     * Transformar evento para la respuesta.
+     */
+    private function transform(Evento $evento)
+    {
+        return [
+            'codigo' => $evento->codigo,
+            'duracion' => $evento->duracion,
+            'descripcion' => $evento->descripcion,
+        ];
+    }
+
     /**
      * Listar eventos.
      */
@@ -15,12 +29,15 @@ class EventoController extends Controller
     {
         try {
             $eventos = Evento::paginate(10);
+            $data = $eventos->getCollection()->map(fn($e) => $this->transform($e));
+            $eventos->setCollection($data);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Lista de eventos obtenida correctamente',
                 'data' => $eventos
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener eventos',
@@ -42,18 +59,19 @@ class EventoController extends Controller
             ]);
 
             $evento = Evento::create($validated);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Evento creado correctamente',
-                'data' => $evento
+                'data' => $this->transform($evento)
             ], 201);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error de validación',
-                'errors' => $e->errors()
+                'error' => $e->errors()
             ], 422);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error al crear evento',
@@ -71,9 +89,9 @@ class EventoController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Evento obtenido correctamente',
-                'data' => $evento
+                'data' => $this->transform($evento)
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener evento',
@@ -95,18 +113,19 @@ class EventoController extends Controller
             ]);
 
             $evento->update($validated);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Evento actualizado correctamente',
-                'data' => $evento
+                'data' => $this->transform($evento)
             ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error de validación',
-                'errors' => $e->errors()
+                'error' => $e->errors()
             ], 422);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error al actualizar evento',
@@ -122,12 +141,13 @@ class EventoController extends Controller
     {
         try {
             $evento->delete();
+
             return response()->json([
                 'success' => true,
                 'message' => 'Evento eliminado correctamente',
                 'data' => null
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error al eliminar evento',
