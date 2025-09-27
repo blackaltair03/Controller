@@ -2,36 +2,44 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
-use App\Http\Controllers\Controller;
 
 class AuthController extends Controller
 {
+    /**
+     * Registro de usuario.
+     */
     public function register(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|unique:users,email',
-            'password' => 'required|string|confirmed',
+            'password' => 'required|string|confirmed|min:8',
         ]);
 
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'password' => Hash::make($validated['password']), 
+            'password' => Hash::make($validated['password']),
         ]);
 
         return response()->json([
-            'user' => $user,
+            'success' => true,
+            'message' => 'Usuario registrado correctamente',
+            'data' => $user,
             'token' => $user->createToken('auth_token')->plainTextToken
         ], 201);
     }
 
-    public function login(Request $request) 
+    /**
+     * Inicio de sesión.
+     */
+    public function login(Request $request)
     {
         $credentials = $request->validate([
             'name' => 'required|string',
@@ -39,22 +47,31 @@ class AuthController extends Controller
         ]);
 
         if (!Auth::attempt($credentials)) {
-            throw ValidationException::withMessages([
-                'name' => ['Credenciales incorrectas']
-            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Credenciales incorrectas',
+                'data' => null
+            ], 401);
         }
         $user = Auth::user();
         return response()->json([
-            'user' => $user,
+            'success' => true,
+            'message' => 'Inicio de sesión exitoso',
+            'data' => $user,
             'token' => $user->createToken('auth_token')->plainTextToken
         ]);
     }
 
+    /**
+     * Cierre de sesión.
+     */
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
         return response()->json([
-            'message' => 'Sesión cerrada con éxito'
+            'success' => true,
+            'message' => 'Sesión cerrada con éxito',
+            'data' => null
         ]);
     }
 }

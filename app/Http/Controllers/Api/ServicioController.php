@@ -6,48 +6,131 @@ use App\Http\Controllers\Controller;
 use App\Models\Servicio;
 use Illuminate\Http\Request;
 
-
 class ServicioController extends Controller
 {
+    /**
+     * Listar servicios.
+     */
     public function index()
     {
-        return response()->json(Servicio::all());
+        try {
+            $servicios = Servicio::paginate(10);
+            return response()->json([
+                'success' => true,
+                'message' => 'Lista de servicios obtenida correctamente',
+                'data' => $servicios
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener servicios',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
+    /**
+     * Crear servicio.
+     */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'codigo' => 'required|string|max:20|unique:servicios,codigo',
-            'nombre' => 'required|string|max:50',
-            'descripcion' => 'nullable|string|max:255',
-        ]);
-
-        $servicio = Servicio::create($validated);
-        return response()->json($servicio, 201);
+        try {
+            $validated = $request->validate([
+                'codigo' => 'required|string|max:20|unique:servicios,codigo',
+                'nombre' => 'required|string|max:50',
+                'descripcion' => 'nullable|string|max:255',
+            ]);
+            $servicio = Servicio::create($validated);
+            return response()->json([
+                'success' => true,
+                'message' => 'Servicio creado correctamente',
+                'data' => $servicio
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al crear servicio',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
+    /**
+     * Mostrar servicio.
+     */
     public function show(Servicio $servicio)
     {
-        return response()->json($servicio);
+        try {
+            return response()->json([
+                'success' => true,
+                'message' => 'Servicio obtenido correctamente',
+                'data' => $servicio
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener servicio',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
+    /**
+     * Actualizar servicio.
+     */
     public function update(Request $request, Servicio $servicio)
     {
-        $validated = $request->validate([
-            'codigo' => 'sometimes|string|max:20|unique:servicios,codigo,' . $servicio->id,
-            'nombre' => 'sometimes|string|max:50',
-            'descripcion' => 'nullable|string|max:255',
-        ]);
-
-        $servicio->update($validated);
-        return response()->json($servicio);
+        try {
+            $validated = $request->validate([
+                'codigo' => 'sometimes|string|max:20|unique:servicios,codigo,' . $servicio->id,
+                'nombre' => 'sometimes|string|max:50',
+                'descripcion' => 'nullable|string|max:255',
+            ]);
+            $servicio->update($validated);
+            return response()->json([
+                'success' => true,
+                'message' => 'Servicio actualizado correctamente',
+                'data' => $servicio
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar servicio',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
+    /**
+     * Eliminar servicio.
+     */
     public function destroy(Servicio $servicio)
     {
-        $servicio->delete();
-        return response()->json([
-            'message' => 'Servicio Eliminado'
-        ]);
+        try {
+            $servicio->delete();
+            return response()->json([
+                'success' => true,
+                'message' => 'Servicio eliminado correctamente',
+                'data' => null
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al eliminar servicio',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }
